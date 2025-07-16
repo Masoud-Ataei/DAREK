@@ -1,7 +1,0 @@
-pyproject.toml
-src/DAREK/DAREK.py
-src/DAREK/__init__.py
-src/DAREK.egg-info/PKG-INFO
-src/DAREK.egg-info/SOURCES.txt
-src/DAREK.egg-info/dependency_links.txt
-src/DAREK.egg-info/top_level.txt

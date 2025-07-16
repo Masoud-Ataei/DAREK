@@ -3,6 +3,9 @@
 This is the github repo for the paper ["DAREK: Distance-Aware Errors for Kolmogorov Networks"](https://ieeexplore.ieee.org/document/10888425). You may want to quickstart with [example](https://github.com/Masoud-Ataei/DAREK/example.ipynb).
 
 DAREK is a method to compute **tight**, **distance-aware**, **worst-case error bounds** for Kolmogorov-Arnold Networks (KANs). Unlike probabilistic uncertainty estimation, DAREK uses Lipschitz continuity of true functions to derive analytical bounds that increase with distance from training data. Please find the paper and other information here [here](https://Masoud-Ataei.github.io/DAREK/index.html).
+| ![Multi agent simulation when GP model fails.](imgs/overlayed_gifsanim_GP2.gif) | ![Multi agent simulation when DAREK model reach goal.](imgs/overlayed_gifsanim_DAREK2.gif) |
+|:--:|:--:|
+| Multi agent simulation when GP model fails. | Multi agent simulation when DAREK model reach goal. |
 
 ## Installation
 DAREK can be installed via PyPI or directly from GitHub. 
@@ -28,10 +31,10 @@ pip install -e .
 pip install git+https://github.com/Masoud-Ataei/DAREK.git
 ```
 
-**Installation via PyPI:**
+<!-- **Installation via PyPI:**
 ```
 pip install pykan
-```
+``` -->
 
 Requirements
 
