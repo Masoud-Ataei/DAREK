@@ -13,12 +13,12 @@ License-File: LICENSE
 
 # Distance-Aware Errors for Kolmogorov Networks (DAREKs)
 
-This is the github repo for the paper ["DAREK: Distance-Aware Errors for Kolmogorov Networks"](https://ieeexplore.ieee.org/document/10888425). You may want to quickstart with [hellokan](https://github.com/Masoud-Ataei/DAREK/example.ipynb).
+This is the github repo for the paper ["DAREK: Distance-Aware Errors for Kolmogorov Networks"](https://ieeexplore.ieee.org/document/10888425). You may want to quickstart with [tutrial](https://github.com/Masoud-Ataei/DAREK/example.ipynb).
 
 DAREK is a method to compute **tight**, **distance-aware**, **worst-case error bounds** for Kolmogorov-Arnold Networks (KANs). Unlike probabilistic uncertainty estimation, DAREK uses Lipschitz continuity of true functions to derive analytical bounds that increase with distance from training data. Please find the paper and other information here [here](https://Masoud-Ataei.github.io/DAREK/index.html).
 
 ## Installation
-DAREK can be installed via PyPI or directly from GitHub. 
+DAREK can be installed directly from GitHub. 
 
 **Pre-requisites:**
 
@@ -41,10 +41,10 @@ pip install -e .
 pip install git+https://github.com/Masoud-Ataei/DAREK.git
 ```
 
-**Installation via PyPI:**
+<!-- **Installation via PyPI:**
 ```
 pip install pykan
-```
+``` -->
 
 Requirements
 
@@ -70,8 +70,6 @@ For those who prefer using Conda:
 conda create --name DAREK-env python=3.9.7
 conda activate DAREK-env
 pip install git+https://github.com/Masoud-Ataei/DAREK.git  # For GitHub installation
-# or
-pip install DAREK  # For PyPI installation
 ```
 
 ## Documentation
