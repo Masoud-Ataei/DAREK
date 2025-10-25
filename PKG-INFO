@@ -13,7 +13,7 @@ License-File: LICENSE
 
 # Distance-Aware Errors for Kolmogorov Networks (DAREKs)
 
-This is the github repo for the paper ["DAREK: Distance-Aware Errors for Kolmogorov Networks"](https://ieeexplore.ieee.org/document/10888425). You may want to quickstart with [tutrial](https://github.com/Masoud-Ataei/DAREK/example.ipynb).
+This is the github repo for the paper ["DAREK: Distance-Aware Errors for Kolmogorov Networks"](https://ieeexplore.ieee.org/document/10888425). You may want to quickstart with [tutrial](https://github.com/Masoud-Ataei/DAREK/blob/main/DAREK_Example.ipynb).
 
 DAREK is a method to compute **tight**, **distance-aware**, **worst-case error bounds** for Kolmogorov-Arnold Networks (KANs). Unlike probabilistic uncertainty estimation, DAREK uses Lipschitz continuity of true functions to derive analytical bounds that increase with distance from training data. Please find the paper and other information here [here](https://Masoud-Ataei.github.io/DAREK/index.html).
 
