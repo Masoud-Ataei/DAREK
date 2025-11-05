@@ -984,7 +984,7 @@ class DAREK(MultKAN):
         # x0 = torch.rand((4,1))
         k  = self.k
         kp = k + 1
-        kfac = np.math.factorial(kp)
+        kfac = math.factorial(kp)
         yhat = self(x0)
         ws = np.array(self.width)[:,0]
         mlprod = np.sum(ws[:-1] * ws[1:])
