@@ -20,8 +20,8 @@ from sympy import *
 import sympy
 from tqdm import tqdm
 from kan.LBFGS import *
-from .darek_error_share import Equal_Error_Share, LastLayer_Error_Share, SHAP_Error_Share, Apprx_SHAP_Error_Share
-from .darek_lipschitz import Equal_Lipschitz, Heuristic_Lipschitz, NonOptimal_WorstCase_Lipschitz, Optimal_Lipschitz, DataDriven_Lipschitz
+from kan_error_share import Equal_Error_Share, LastLayer_Error_Share, SHAP_Error_Share, Apprx_SHAP_Error_Share
+from kan_lipschitz import Equal_Lipschitz, Heuristic_Lipschitz, NonOptimal_WorstCase_Lipschitz, Optimal_Lipschitz, DataDriven_Lipschitz
 
 # Function to recursively convert NumPy arrays to lists
 def convert_to_list(d):
@@ -117,15 +117,20 @@ def newton_polynomial(x, y, x_eval):
     
     return result
 
-def spline_error(g, e, x, kp = 4, Lkp = 1.0, knot_select = 'topk'):    
-    knots, index_knots = select_knots(x.view((-1,1)), g.view((1,-1)), kp = kp, method=knot_select)
+def spline_error(g, e, x, kp = 4, Lkp = 1.0, knot_select = 'topk', oint = None, oknot = None):    
+    knots, index_knots = select_knots(x.view((-1,1)), g.view((1,-1)), kp = oint, method=knot_select)
     x_segment = g.flatten()[index_knots]  # Use two neighboring points (linear Newton)        
-    fac = math.factorial(kp)
+    fac = math.factorial(oint)
     # error_knot = torch.abs(newton_polynomial(x_segment, y_segment, x))
     int_err    = torch.abs(torch.prod(x.view((-1,1)) - knots, dim=1).flatten())  * Lkp / fac
+    #### extrapolations ####
+    
     
     util = []
     # print(e.shape)
+    knots, index_knots = select_knots(x.view((-1,1)), g.view((1,-1)), kp = oknot, method=knot_select)
+    x_segment = g.flatten()[index_knots]
+
     for o in range(e.shape[1]):       
         y_segment = torch.abs(e[:,o][index_knots])
         yhat_hl = torch.abs(newton_polynomial(x_segment, y_segment, x))         
@@ -560,7 +565,7 @@ class DAREK(MultKAN):
             auto_save = model.auto_save,
             ckpt_path = model.ckpt_path,
             round = model.round,
-            device = str(model.device),            
+            device = str(model.device)            
         )
         
         for i in range (model.depth):
@@ -733,14 +738,16 @@ class DAREK(MultKAN):
             y_grid = y[indx].clone()
             # if x.shape[1] == 1:
             #     y_grid = torch.gather(y, 0, g_indx)[indx].clone()
-            if self.extend:
-                k = self.k
-                gz = torch.zeros((grid.shape[0]+2*k,grid.shape[1]),dtype=torch.float32)
-                gz[k:-k,:] = grid                
-                for i in range(grid.shape[1]):
-                    dg = (grid[i,-1]-grid[i,0])/grid.shape[1]
-                    gz[:k,i] = torch.arange(-k,0) * dg + grid[i,0]
-                    gz[-k:,i] = torch.arange(1,k+1) * dg + grid[i,-1]
+            # if self.extend:
+            #     k = self.k
+            #     gz = torch.zeros((grid.shape[0]+2*k,grid.shape[1]),dtype=torch.float32)
+            #     grid0,indx0 =grid.sort(dim=0)  
+            #     gz[k:-k,:] = grid0.clone()  
+            #     for i in range(grid.shape[1]):
+            #         dg = (grid0[-1,i]-grid0[0,i])/grid0.shape[1]
+            #         gz[:k,i] = torch.arange(-k,0) * dg + grid0[0,i]
+            #         gz[-k:,i] = torch.arange(1,k+1) * dg + grid0[-1,i]
+            #     grid0 = gz
             # grid[0]  -= 1
             # grid[1]  -= 0.5
             # grid[-2] += 0.5
@@ -754,18 +761,31 @@ class DAREK(MultKAN):
             self.samples = {'x': grid.clone(),
                             'y': y_grid.clone(),
                             'indx': torch.tensor(indx)}
+            
+            # grid = grid0.clone()
         else:
             grid = self.knots['x'].clone()
-        
+            
         x = grid.clone()
         
         # x = x[:,self.input_id.long()]
         # assert x.shape[1] == self.width_in[0]
         
         for l in range(self.depth):
-            
-            grid0,indx0 =grid.sort(dim=0)  
             self.knots[f'x{l}']    = grid.clone().cpu().detach()
+            if self.extend:
+                k = self.k
+                gz = torch.zeros((grid.shape[0]+2*k,grid.shape[1]),dtype=torch.float32)
+                grid0,indx0 =grid.sort(dim=0)  
+                gz[k:-k,:] = grid0.clone()  
+                for i in range(grid.shape[1]):
+                    dg = (grid0[-1,i]-grid0[0,i])/grid0.shape[1]
+                    gz[:k,i] = torch.arange(-k,0) * dg + grid0[0,i]
+                    gz[-k:,i] = torch.arange(1,k+1) * dg + grid0[-1,i]
+                grid0 = gz
+                
+            else:
+                grid0,indx0 =grid.sort(dim=0)              
             self.knots[f'indx{l}'] = indx0.clone().cpu().detach()
             self.act_fun[l].grid.data = grid0.T        
             # # x.shape, g.shape
@@ -969,7 +989,7 @@ class DAREK(MultKAN):
         return 
     
     def predict(self, x0, fk = 1.0, f1 = 1.0, share = None,
-                    error_knot_method = 'PN', knot_select = 'nearGj', noise = 0.0):        
+                    error_knot_method = 'PN', knot_select = 'nearGj', noise = 0.0, oint = None, oknot = None):        
         self.splines = {'samples': self.samples}
         depth = len(self.width) - 1
         gout = self(self.samples['x'])
@@ -979,12 +999,19 @@ class DAREK(MultKAN):
             # ej = torch.min(ej, noise)
             positive_mask = ej >= 0
             ej = torch.where(positive_mask, torch.max(ej, torch.tensor(noise)), torch.min(ej, torch.tensor(-noise)))
+        
+        
         # print(gout.T)
         # gind = gout.clone()
         # x0 = torch.rand((4,1))
         k  = self.k
         kp = k + 1
-        kfac = math.factorial(kp)
+        if oint is None:
+            oint = kp
+        if oknot is None:
+            oknot = kp
+
+        kfac = np.math.factorial(kp)
         yhat = self(x0)
         ws = np.array(self.width)[:,0]
         mlprod = np.sum(ws[:-1] * ws[1:])
@@ -1057,9 +1084,10 @@ class DAREK(MultKAN):
                     # # ubar = sp['Lk'] * torch.prod( torch.sort(torch.abs(sp['hx'].reshape((-1,1)) - sp['gi'].numpy().reshape((1,-1))), dim = 1)[0][:,:kp], axis = 1)/ kfac
                     # # ubar = sp['Lk'] * torch.prod( torch.topk(torch.abs(sp['hx'].reshape((-1,1)) - sp['gi'].numpy().reshape((1,-1))), kp, dim = 1, largest=False)[0], axis = 1)/ kfac                    
                     # ubar = interpol_error(sp['hx'].reshape((-1,1)), sp['gi'].reshape((1,-1)), kp, sp['Lk'], method = knot_select)
-
-                    ubar,util = spline_error(sp['gi'].flatten(), sp['ej'], sp['hx'], kp, sp['Lk'], knot_select = knot_select)
-
+                    if self.extend:
+                        ubar,util = spline_error(sp['gi'].flatten()[k:-k], sp['ej'], sp['hx'], kp, sp['Lk'], knot_select = knot_select, oint = oint, oknot = oknot)
+                    else:
+                        ubar,util = spline_error(sp['gi'].flatten()      , sp['ej'], sp['hx'], kp, sp['Lk'], knot_select = knot_select, oint = oint, oknot = oknot)
                     # print(ubar.shape, ubar.T)
                     # print(util.shape, util.T)
                     sp['Ubar_c'] = ubar
