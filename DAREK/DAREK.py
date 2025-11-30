@@ -20,8 +20,8 @@ from sympy import *
 import sympy
 from tqdm import tqdm
 from kan.LBFGS import *
-from kan_error_share import Equal_Error_Share, LastLayer_Error_Share, SHAP_Error_Share, Apprx_SHAP_Error_Share
-from kan_lipschitz import Equal_Lipschitz, Heuristic_Lipschitz, NonOptimal_WorstCase_Lipschitz, Optimal_Lipschitz, DataDriven_Lipschitz
+from .kan_error_share import Equal_Error_Share, LastLayer_Error_Share, SHAP_Error_Share, Apprx_SHAP_Error_Share
+from .kan_lipschitz import Equal_Lipschitz, Heuristic_Lipschitz, NonOptimal_WorstCase_Lipschitz, Optimal_Lipschitz, DataDriven_Lipschitz
 
 # Function to recursively convert NumPy arrays to lists
 def convert_to_list(d):
